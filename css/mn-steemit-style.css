@@ -1,0 +1,140 @@
+.steem-feed-loader {
+	padding: 10px;
+	background-color: #f5f5f5;	
+	text-align: center;
+	margin: 0 0 20px;
+}
+
+.sf-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;	
+}
+
+.sf-li {
+	overflow: hidden;
+	padding: 0 0 15px;
+	margin: 0 0 15px;
+	border-bottom: 1px solid #eee;
+}
+
+.sf-li article {
+}	
+
+.sf-image {
+	float: left;
+	width: 130px;	
+	min-height: 77px;
+	border: 1px solid #eee !important;
+	background-color: #eee;
+	margin: 0 10px 0 0;
+	box-shadow: none !important;	
+}
+
+.sf-image img {
+	width: 100%;
+	max-width: 100%;
+}
+
+.sf-li-content {
+	overflow: hidden;
+}
+
+.sf-li-title {
+	font-size: 18px;
+	font-weight: 600;
+	display: block;
+	margin: 0 0 5px;
+	box-shadow: none !important;
+	text-decoration: none;
+	border: 0 !important;
+}
+
+.sf-li-title:hover,
+.sf-li-title:focus {
+	text-decoration: none;	
+}
+
+.sf-li-body {
+	font-size: 15px;
+	margin: 0 0 8px;	
+}
+
+.sf-li-footer {
+	font-size: 14px;
+	color: #8a8a8a;
+}
+
+.sf-li-reward {
+}
+
+.sf-li-reward-inner {
+	padding-right: 10px;
+	margin-right: 10px;
+	border-right: 1px solid #cacaca;
+}
+
+.sf-li-dollar-sign {
+	padding: 0 2px 0 0;	
+}
+
+.sf-li-vcard {
+	padding-right: 10px;
+	margin-right: 10px;
+	border-right: 1px solid #cacaca;
+}
+
+.sf-li-vcard a {
+	font-weight: 600;
+	box-shadow: none !important;
+	text-decoration: none;	
+	border: 0 !important;
+}
+
+.sf-li-vcard a:hover,
+.sf-li-vcard a:focus {
+	text-decoration: none;	
+}
+
+.sf-li-rep {
+	display: inline-block;
+    font-size: 11px;
+    line-height: 18px;
+    padding: 0 3px;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-color: #f8f8f8;
+    border-radius: 50%;
+    border: 1px solid #dadada;
+    color: #8a8a8a;
+	width: 20px
+	height: 20px;	
+}
+
+.sf-li-votes {
+	padding-right: 10px;
+	margin-right: 10px;
+	border-right: 1px solid #cacaca;
+}
+
+.sf-li-votes i,
+.sf-li-replies i {
+	color: #cacaca;	
+}
+
+.sf-li-replies a {
+	color: #8a8a8a;	
+	box-shadow: none !important;
+	text-decoration: none;
+	border: 0 !important;
+}
+
+.sf-li-replies a:hover,
+.sf-li-replies a:focus {
+	text-decoration: none;
+	color: #8a8a8a;	
+}
+
+/* Media queries */
+/*@media all and (max-width: 480px){
+}*/
