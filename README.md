@@ -1,4 +1,4 @@
-# Steemit-Feed-for-Wordpress - v.1.0.2
+# OFFICIAL Steemit-Feed-for-Wordpress - v.1.0.2
 
 Display Steemit posts from any Steemit username.
 
