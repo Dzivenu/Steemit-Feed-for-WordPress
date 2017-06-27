@@ -3,7 +3,7 @@ Contributors: minitekgr
 Tags: Steemit, Steemit feed, Steemit posts, Steemit articles, Steemit widget
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -41,7 +41,6 @@ See the table below for a full list of available shortcode options:
 = Shortcode Options =
 * **General Options**
 * **username** - A Steemit Username - Example: `[steemit-feed username="wordpress-tips"]`
-*
 * **Post Options**
 * **postscount** - Total posts in feed (integer) - Example: `[steemit-feed postscount="5"]`
 * **postimage** - Show post image (true or false) - Example: `[steemit-feed postimage="true"]`
@@ -56,6 +55,11 @@ See the table below for a full list of available shortcode options:
 * **postreplies** - Show post replies (true or false) - Example: `[steemit-feed postreplies="true"]`
 
 == Changelog ==
+
+= 1.0.3 =
+* Fixes the reward sum (displayed as $0.00 when payout has not started).
+* Fixes the upvotes count.
+* Changes the votes icon (user icon has been replaced by an arrow icon to match the Steemit layout).
 
 = 1.0.2 =
 * Updated to work with the latest Steem.js API.
