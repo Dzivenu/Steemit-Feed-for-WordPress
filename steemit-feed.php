@@ -3,7 +3,7 @@
 Plugin Name: Steemit Feed
 Plugin URI: https://steemit.com/steemit/@wordpress-tips/steemit-for-wordpress-1-display-your-steemit-blog-in-your-wordpress-website-with-this-free-plugin
 Description: A simple Wordpress plugin that displays a feed of your Steemit posts.
-Version: 1.0.2
+Version: 1.0.3
 Author: Minitek.gr
 Author URI: https://www.minitek.gr/
 License: GPLv3 or later
@@ -129,7 +129,6 @@ function display_steemit($atts, $content = null) {
 							jQuery.post(mn_sf_ajaxurl, data, function(msg) {
 								$('.steem-feed-'+mn_sf_id+'').html(msg);
 							});
-													
 						}
 					})
 				});
@@ -186,7 +185,6 @@ function mn_render_steem_feed() {
 						 
 					$html .= '<article>';
 					
-						
 						// Image
 						if ($atts['postimage'] === 1 || $atts['postimage'] === '1' || $atts['postimage'] === true || $atts['postimage'] === 'true')
 						{
@@ -232,8 +230,10 @@ function mn_render_steem_feed() {
 									if ($atts['postreward'] === 1 || $atts['postreward'] === '1' || $atts['postreward'] === true || $atts['postreward'] === 'true')
 									{
 										$total_payout_value = round((float)$item->total_payout_value, 2);
+										$curator_payout_value = round((float)$item->curator_payout_value, 2);
+										$pending_payout_value = round((float)$item->pending_payout_value, 2);
 										$total_pending_payout_value = round((float)$item->total_pending_payout_value, 2);
-										$total_value = number_format(round(($total_payout_value + $total_pending_payout_value), 2), 2);
+										$total_value = number_format(round(($total_payout_value + $curator_payout_value + $pending_payout_value + $total_pending_payout_value), 2), 2);
 										$html .= '<span class="sf-li-reward">';
 											$html .= '<span class="sf-li-reward-inner"><span class="sf-li-dollar-sign">&#36;</span>'.$total_value.'</span>';
 										$html .= '</span>';
@@ -276,8 +276,8 @@ function mn_render_steem_feed() {
 									if ($atts['postvotes'] === 1 || $atts['postvotes'] === '1' || $atts['postvotes'] === true || $atts['postvotes'] === 'true')
 									{
 										$html .= '<span class="sf-li-votes">';
-											$html .= '<i class="fa fa-user"></i>&nbsp;';
-											$html .= count($item->active_votes);
+											$html .= '<i class="fa fa-chevron-up"></i>&nbsp;';
+											$html .= (int)$item->net_votes;
 										$html .= '</span>';
 									}
 									
