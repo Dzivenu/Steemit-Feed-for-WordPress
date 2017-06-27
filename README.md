@@ -1,6 +1,9 @@
-# OFFICIAL Steemit-Feed-for-Wordpress - v.1.0.2
+# OFFICIAL Steemit-Feed-for-Wordpress - v.1.0.3
 
 Display Steemit posts from any Steemit username.
+
+- 1.0.3 -
+https://steemit.com/wordpress/@wordpress-tips/update-steemit-feed-for-wordpress-v-1-0-3-reward-sum-fix-other-small-changes-poll-vote-for-new-features
 
 - 1.0.2 - 
 https://steemit.com/wordpress/@wordpress-tips/official-steemit-feed-for-wordpress-updated-v-1-0-2-for-wordpress-4-8-x
