@@ -216,6 +216,7 @@ function mn_steemit_settings_page() {
                     <td>
                         <select name="mn_steemit_post_image" id="mn_steemit_post_image">
                             <option value="1" <?php if($mn_steemit_post_image == 1) echo 'selected="selected"' ?> ><?php _e('Show', 'steemit-feed'); ?></option>
+
                             <option value="0" <?php if($mn_steemit_post_image == 0) echo 'selected="selected"' ?> ><?php _e('Hide', 'steemit-feed'); ?></option>
                         </select>
                     </td>
@@ -434,11 +435,13 @@ function mn_steemit_settings_page() {
         <p><i class="fa fa-life-ring" aria-hidden="true"></i>&nbsp; <?php _e('<a href="https://steemit.com/steemit/@wordpress-tips/steemit-for-wordpress-1-display-your-steemit-blog-in-your-wordpress-website-with-this-free-plugin" target="_blank">Click here for setup instructions</a>', 'steemit-feed'); ?></p>
         
 	<?php } //End Support tab ?>
+		
+	<div class="sfi_share_plugin">
+        <h3><?php _e('About us'); ?></h3>
+		<p class="sfi_plugins_promo"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i>&nbsp; Check out our Steemit page at <a href="https://steemit.com/@wordpress-tips" target="_blank">https://steemit.com/@wordpress-tips</a>.</p>
+    	<p class="sfi_plugins_promo"><i class="fa fa-chevron-circle-right" aria-hidden="true"></i>&nbsp; Check out our other products at <a href="https://www.minitek.gr/" target="_blank">https://www.minitek.gr/</a>.</p>
+	</div>
 	
-    <hr />
-
-    <p class="sfi_plugins_promo dashicons-before dashicons-admin-plugins"> Check out our other products at <a href="https://www.minitek.gr/" target="_blank">https://www.minitek.gr/</a>.</p>
-
     <div class="sfi_share_plugin">
         <h3><?php _e('Like the plugin? Help spread the word!'); ?></h3>
 
