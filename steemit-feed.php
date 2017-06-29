@@ -3,7 +3,7 @@
 Plugin Name: Steemit Feed
 Plugin URI: https://steemit.com/steemit/@wordpress-tips/steemit-for-wordpress-1-display-your-steemit-blog-in-your-wordpress-website-with-this-free-plugin
 Description: A simple Wordpress plugin that displays a feed of your Steemit posts.
-Version: 1.0.3
+Version: 1.0.4
 Author: Minitek.gr
 Author URI: https://www.minitek.gr/
 License: GPLv3 or later
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-define( 'MNSFVER', '1.0.2' );
+define( 'MNSFVER', '1.0.4' );
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 //Include admin
@@ -45,8 +45,10 @@ function display_steemit($atts, $content = null) {
     $atts = shortcode_atts(
     array(
         'username' => isset($options[ 'mn_steemit_username' ]) ? $options[ 'mn_steemit_username' ] : '',
+		'referral' => isset($options[ 'mn_steemit_referral' ]) ? $options[ 'mn_steemit_referral' ] : '',
 		'ajaxtheme' => isset($options[ 'mn_steemit_ajax_theme' ]) ? $options[ 'mn_steemit_ajax_theme' ] : '',
 		'postscount' => isset($options[ 'mn_steemit_posts_count' ]) ? $options[ 'mn_steemit_posts_count' ] : '',
+		'excludedtags' => isset($options[ 'mn_steemit_excluded_tags' ]) ? $options[ 'mn_steemit_excluded_tags' ] : '',
 		'postimage' => isset($options[ 'mn_steemit_post_image' ]) ? $options[ 'mn_steemit_post_image' ] : '',
         'posttitle' => isset($options[ 'mn_steemit_post_title' ]) ? $options[ 'mn_steemit_post_title' ] : '',
         'postcontent' => isset($options[ 'mn_steemit_post_content' ]) ? $options[ 'mn_steemit_post_content' ] : '',
@@ -54,10 +56,10 @@ function display_steemit($atts, $content = null) {
         'postreward' => isset($options[ 'mn_steemit_post_reward' ]) ? $options[ 'mn_steemit_post_reward' ] : '',
         'postdate' => isset($options[ 'mn_steemit_post_date' ]) ? $options[ 'mn_steemit_post_date' ] : '',
         'postauthor' => isset($options[ 'mn_steemit_post_author' ]) ? $options[ 'mn_steemit_post_author' ] : '',
+        'authorrep' => isset($options[ 'mn_steemit_author_rep' ]) ? $options[ 'mn_steemit_author_rep' ] : '',
         'posttag' => isset($options[ 'mn_steemit_post_tag' ]) ? $options[ 'mn_steemit_post_tag' ] : '',
         'postvotes' => isset($options[ 'mn_steemit_post_votes' ]) ? $options[ 'mn_steemit_post_votes' ] : '',
         'postreplies' => isset($options[ 'mn_steemit_post_replies' ]) ? $options[ 'mn_steemit_post_replies' ] : '',
-        'excludedtags' => isset($options[ 'mn_steemit_excluded_tags' ]) ? $options[ 'mn_steemit_excluded_tags' ] : '',
     ), $atts);
 
     /******************* VARS ********************/
@@ -67,6 +69,9 @@ function display_steemit($atts, $content = null) {
 
     //Post Settings
 	$mn_steemit_posts_count = $atts['postscount'];
+	
+	// Show author rep
+	$mn_steemit_author_rep = $atts['authorrep'];
 
     //Ajax theme
     $mn_steemit_ajax_theme = $atts['ajaxtheme'];
@@ -74,16 +79,47 @@ function display_steemit($atts, $content = null) {
 
     /******************* CONTENT ********************/
 
-    $mn_steemit_content = '<div id="mn_steem_feed" class="sfi">';
+    $mn_steemit_content = '<div id="mn_steem_feed_'.$i.'" class="sfi">';
 
-    //Error messages
-    $mn_steemit_error = false;
-    if( empty($mn_steemit_username) || !isset($mn_steemit_username) ){
-        $mn_steemit_content .= '<div class="mn_steem_feed_error"><p>'.__('Please enter a username on the Steemit Feed plugin Settings page', 'steemit-feed' ).'</p></div>';
-        $mn_steemit_error = true;
-    }
+		//Error messages
+		$mn_steemit_error = false;
+		if( empty($mn_steemit_username) || !isset($mn_steemit_username) ){
+			$mn_steemit_content .= '<div class="mn_steem_feed_error"><p>'.__('Please enter a username on the Steemit Feed plugin Settings page', 'steemit-feed' ).'</p></div>';
+			$mn_steemit_error = true;
+		}
     
     $mn_steemit_content .= '</div>'; //End #mn_steemit
+	
+	// Add inline css
+	$title_font_size = (isset($options[ 'mn_steemit_title_font_size' ]) && is_numeric($options[ 'mn_steemit_title_font_size' ])) ? (int)$options[ 'mn_steemit_title_font_size' ].'px' : '18px';
+	$body_font_size = (isset($options[ 'mn_steemit_body_font_size' ]) && is_numeric($options[ 'mn_steemit_body_font_size' ])) ? (int)$options[ 'mn_steemit_body_font_size' ].'px' : '15px';
+	$responsive_breakpoint = isset($options[ 'mn_steemit_responsive_breakpoint' ]) ? $options[ 'mn_steemit_responsive_breakpoint' ] : '400';
+	
+	$custom_css = '';
+	$custom_css .= '
+	.sf-li-title {
+		font-size: '.$title_font_size.';
+	}
+	.sf-li-body {
+		font-size: '.$body_font_size.';
+	}
+	';
+	$custom_css .= '
+	@media only screen and (max-width:'.(int)$responsive_breakpoint.'px) 
+	{
+		.sf-li {
+			margin: 0 0 25px;	
+		}
+		.sf-image {
+			float: none;
+			display: block;
+			width: 100%;
+			margin: 0 0 12px;
+		}
+	}
+	';
+	wp_enqueue_style( 'mn_steemit_custom_style', plugins_url('css/mn-steemit-style-custom.css', __FILE__), array(), MNSFVER, 'all' );
+	wp_add_inline_style( 'mn_steemit_custom_style', $custom_css );
 	 	
 	 //If using an ajax theme then add the JS to the bottom of the feed
     if($mn_steemit_ajax_theme){
@@ -93,50 +129,75 @@ function display_steemit($atts, $content = null) {
 	// Add script
 	if( isset($mn_steemit_username) && $mn_steemit_username )
 	{
-		// Steemit feed
-		$mn_steemit_content .= '<div class="steem-feed-'.$i.'"><div class="steem-feed-loader"><i class="fa fa-refresh fa-spin"></i></div></div>';
-
 		$mn_sf_author = $mn_steemit_username;
 		$mn_sf_datenow = current_time( 'Y-m-d\TH:i:s' );
 		$mn_sf_limit = (int)$mn_steemit_posts_count;	
-		$mn_sf_ajaxurl = admin_url( 'admin-ajax.php' );
-		$encoded_atts = json_encode($atts);
-	
-		$js = "
-		<script type='text/javascript'>
-			(function ($) {
-				$(document).ready(function() 
-				{
-					// to-do: Localize javascript variables to move javascript in external js file
-					var mn_sf_id = '".$i."';
-					var mn_sf_author = '".$mn_sf_author."';
-					var mn_sf_datenow = '".$mn_sf_datenow."';
-					var mn_sf_limit = '".$mn_sf_limit."';
-					var mn_sf_ajaxurl = '".$mn_sf_ajaxurl."';
-					var encoded_atts = '".$encoded_atts."';
-					mn_sf_limit = parseInt(mn_sf_limit, 10);
-				
-					steem.api.getDiscussionsByAuthorBeforeDate(mn_sf_author, '', mn_sf_datenow, mn_sf_limit, function(err, response)
-					{
-						if (typeof response === 'object')
-						{
-							var data = {
-								'action'	: 'render_steem_feed',
-								'feed'		: encodeURIComponent(JSON.stringify(response)),
-								'atts'		: encodeURIComponent(encoded_atts)
-							};
+		
+		if (!isset($options['mn_steemit_asynchronous']) || ($options['mn_steemit_asynchronous'] === 1 || $options['mn_steemit_asynchronous'] === '1' || $options['mn_steemit_asynchronous'] === true || $options['mn_steemit_asynchronous'] === 'true'))
+		{
+			$mn_steemit_content .= '<div class="steem-feed-'.$i.'"><div class="steem-feed-loader"><i class="fa fa-refresh fa-spin"></i></div></div>';
+
+			$mn_sf_ajaxurl = admin_url( 'admin-ajax.php' );
+			$encoded_atts = json_encode($atts);
+			
+			$js = "
+			<script type='text/javascript'>
+				(function($) {
+					$(function(){
+						// to-do: Localize javascript variables to move javascript in external js file
+						var mn_sf_id = '".$i."';
+						var mn_sf_author = '".$mn_sf_author."';
+						var mn_sf_datenow = '".$mn_sf_datenow."';
+						var mn_sf_limit = '".$mn_sf_limit."';
+						var mn_sf_ajaxurl = '".$mn_sf_ajaxurl."';
+						var encoded_atts = '".$encoded_atts."';
+						var show_author_rep = '".$mn_steemit_author_rep."';
+						
+						mn_sf_limit = parseInt(mn_sf_limit, 10);
 					
-							jQuery.post(mn_sf_ajaxurl, data, function(msg) {
-								$('.steem-feed-'+mn_sf_id+'').html(msg);
-							});
-						}
-					})
-				});
-			})(jQuery)
-		</script>
-		";
-	
-		$mn_steemit_content .= $js;	
+						steem.api.getDiscussionsByAuthorBeforeDate(mn_sf_author, '', mn_sf_datenow, mn_sf_limit, function(err, response)
+						{
+							if (typeof response === 'object')
+							{
+								var data = {
+									'action'	: 'render_steem_feed',
+									'feed'		: encodeURIComponent(JSON.stringify(response)),
+									'atts'		: encodeURIComponent(encoded_atts)
+								};
+						
+								$.post(mn_sf_ajaxurl, data, function(msg) 
+								{
+									$('.steem-feed-'+mn_sf_id+'').html(msg);
+									
+									if (show_author_rep === 1 || show_author_rep === '1' || show_author_rep === true || show_author_rep === 'true')
+									{
+										var author_rep = steem.formatter.reputation(response[0]['author_reputation']);
+										$('.steem-feed-'+mn_sf_id+' .sf-li-rep').text(author_rep);
+									}
+								});
+							}
+						})
+					});
+				})(jQuery)
+			</script>
+			";
+		
+			$mn_steemit_content .= $js;	
+		}
+		else
+		{
+			$raw_url = 'https://api.steemjs.com/get_discussions_by_author_before_date?author='.$mn_sf_author.'&startPermlink=&beforeDate='.$mn_sf_datenow.'&limit='.$mn_sf_limit;
+			$posts = file_get_contents($raw_url);
+			//$posts = sf_get_curl_data($raw_url); // To-do
+			$isjson = sf_is_json($posts);
+			
+			if ($isjson)
+			{
+				$feed = mn_render_steem_feed($posts, $atts);
+				
+				$mn_steemit_content .= $feed;
+			}
+		}
 	}
 	 
     //Return our feed HTML to display
@@ -147,29 +208,49 @@ function display_steemit($atts, $content = null) {
 add_action( 'wp_ajax_render_steem_feed', 'mn_render_steem_feed' );
 add_action( 'wp_ajax_nopriv_render_steem_feed', 'mn_render_steem_feed' );
 
-function mn_render_steem_feed() {
+function mn_render_steem_feed($posts = false, $params = false) {
 	
 	$html = '';
-	$feed = $_POST['feed'];
-	$decodefeed = urldecode($feed);
-	$decodefeed = str_replace('\\\'', '\\\\\'', $decodefeed);
-	$decodejson = json_decode($decodefeed, false);
 	
-	$atts = $_POST['atts'];
-	$decodeatts = urldecode($atts);
-	$atts = json_decode($decodeatts, true);
-
+	if (!$posts)
+	{
+		$feed = $_POST['feed'];
+		$decodefeed = urldecode($feed);
+		$decodefeed = str_replace('\\\'', '\\\\\'', $decodefeed);
+		$decodejson = json_decode($decodefeed, false);
+	}
+	else
+	{
+		$decodejson = json_decode($posts, false);
+	}
+	
+	if (!$params)
+	{
+		$atts = $_POST['atts'];
+		$decodeatts = urldecode($atts);
+		$atts = json_decode($decodeatts, true);
+	}
+	else
+	{
+		$atts = $params;
+	}
+	
+	// Referral code
+	$referral_code = $atts['referral'] ? '?r='.$atts['referral'] : '';
+	
+	// Excluded tags
 	$excluded_tags = array_map( 'trim', explode( ',', $atts['excludedtags'] ) );
-
-	$item->title = stripslashes( $item->title );
-	$item->body  = stripslashes( $item->body );
 
 	if (count($decodejson))
 	{
 		$html .= '<ul class="sf-list">';
 			
 			foreach ($decodejson as $key => $item)
-			{				
+			{
+				// Strip slashes		
+				$item->title = stripslashes( $item->title );
+				$item->body  = stripslashes( $item->body );
+							
 				// Metadata
 				$metadata = json_decode($item->json_metadata, false);
 
@@ -193,7 +274,7 @@ function mn_render_steem_feed() {
 								$image = $metadata->image;
 								if (array_key_exists('0', $image))
 								{
-									$html .= '<a href="https://steemit.com'.$item->url.'" class="sf-image" target="_blank"><img src="https://img1.steemit.com/128x256/'.$image[0].'" alt="'.$item->title.'" /></a>';
+									$html .= '<a href="https://steemit.com'.$item->url.''.$referral_code.'" class="sf-image" target="_blank"><img src="https://img1.steemit.com/128x256/'.$image[0].'" alt="'.$item->title.'" /></a>';
 								}
 							}
 						}
@@ -203,15 +284,13 @@ function mn_render_steem_feed() {
 							// Title
 							if ($atts['posttitle'] === 1 || $atts['posttitle'] === '1' || $atts['posttitle'] === true || $atts['posttitle'] === 'true')
 							{
-								$html .= '<a class="sf-li-title" href="https://steemit.com'.$item->url.'" target="_blank">'.$item->title.'</a>';
+								$html .= '<a class="sf-li-title" href="https://steemit.com'.$item->url.''.$referral_code.'" target="_blank">'.$item->title.'</a>';
 							}
 							
 							// Body
 							if ($atts['postcontent'] === 1 || $atts['postcontent'] === '1' || $atts['postcontent'] === true || $atts['postcontent'] === 'true')
 							{
-								$itemBody = sf_clear_text($item->body);
-								$itemBody = sf_word_limit($itemBody, $atts['wordlimit']);
-								$itemBody = stripslashes($itemBody);
+								$itemBody = sf_word_limit($item->body, $atts['wordlimit']);
 								$html .= '<div class="sf-li-body">'.$itemBody.'</div>';
 							}
 							
@@ -257,15 +336,18 @@ function mn_render_steem_feed() {
 											if ($atts['postauthor'] === 1 || $atts['postauthor'] === '1' || $atts['postauthor'] === true || $atts['postauthor'] === 'true')
 											{
 												$html .= '<span class="sf-li-author">'; 
-													$html .= ' '.__('by', 'steemit-feed' ).' <a href="https://steemit.com/@'.$item->author.'" target="_blank">'.$item->author.'</a>';
-													//$html .= '<span class="sf-li-rep"></span>';
+													$html .= ' '.__('by', 'steemit-feed' ).' <a href="https://steemit.com/@'.$item->author.''.$referral_code.'" target="_blank">'.$item->author.'</a>';
+													if ($atts['authorrep'] === 1 || $atts['authorrep'] === '1' || $atts['authorrep'] === true || $atts['authorrep'] === 'true')
+													{
+														$html .= '<span class="sf-li-rep"></span>';
+													}
 												$html .= '</span>';
 											}
 											
 											// Tags
 											if ($atts['posttag'] === 1 || $atts['posttag'] === '1' || $atts['posttag'] === true || $atts['posttag'] === 'true')
 											{
-												$html .= ' '.__('in', 'steemit-feed' ).' <a href="https://steemit.com/trending/'.$metadata->tags[0].'" target="_blank">'.$metadata->tags[0].'</a>';
+												$html .= ' '.__('in', 'steemit-feed' ).' <a href="https://steemit.com/trending/'.$metadata->tags[0].''.$referral_code.'" target="_blank">'.$metadata->tags[0].'</a>';
 											}
 										
 										$html .= '</span>';
@@ -284,7 +366,7 @@ function mn_render_steem_feed() {
 									if ($atts['postreplies'] === 1 || $atts['postreplies'] === '1' || $atts['postreplies'] === true || $atts['postreplies'] === 'true')
 									{
 										$html .= '<span class="sf-li-replies">';
-											$html .= '<a href="https://steemit.com'.$item->url.'#comments" target="_blank">';
+											$html .= '<a href="https://steemit.com'.$item->url.''.$referral_code.'#comments" target="_blank">';
 												$html .= '<i class="fa fa-comments"></i>&nbsp;';
 												$html .= '<span>'.sf_replies_count($item->author, $item->permlink).'</span>';
 											$html .= '</a>';
@@ -306,25 +388,11 @@ function mn_render_steem_feed() {
 	}
 	
 	echo $html;
-
-	wp_die();
-}
-
-function sf_is_json($string) 
-{
-	json_decode($string);
 	
-	return (json_last_error() == JSON_ERROR_NONE);
-}
-
-function sf_clear_text( $text ) {
-	$text = preg_replace( '/#(.*?)#/', '$1', $text );          // Headers
-	$text = preg_replace( '/!\[.*?\]\(.*?\)/', '', $text );    // Images
-	$text = preg_replace( '/\[(.*?)\]\(.*?\)/', '$1', $text ); // Links
-	$text = preg_replace( '/\*(.*?)\*/', '$1', $text );        // Bold or italics
-	$text = preg_replace( '/_(.*?)_/', '$1', $text );          // Bold or italics
-
-	return $text;
+	if (!$posts)
+	{
+		wp_die();
+	}
 }
 
 function sf_word_limit($str, $limit = 20, $end_char = '&#8230;') 
@@ -338,8 +406,9 @@ function sf_word_limit($str, $limit = 20, $end_char = '&#8230;')
 	$replace = array(" ", " ", " ");
 	$str = preg_replace($find, $replace, $str);
 	
-	// strip urls
+	// strip urls and empty parenthesis (markdown)
 	$str = preg_replace('/\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', '', $str);  
+	$str = str_replace("()", "", $str);
 	preg_match('/\s*(?:\S*\s*){'.(int)$limit.'}/u', $str, $matches);
 	
 	if (strlen($matches[0]) == strlen($str))
@@ -402,6 +471,28 @@ function sf_replies_count($author, $permlink)
 	{
 		return false;
 	}
+}
+
+function sf_is_json($string) 
+{
+	json_decode($string);
+	
+	return (json_last_error() == JSON_ERROR_NONE);
+}
+
+function sf_get_curl_data($url) 
+{
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	curl_setopt($ch, CURLOPT_HEADER, FALSE);
+
+	$data = curl_exec($ch);
+
+	curl_close($ch);
+	
+	return $data;
 }
 
 #############################
