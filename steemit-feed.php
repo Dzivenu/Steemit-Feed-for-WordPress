@@ -186,17 +186,19 @@ function display_steemit($atts, $content = null) {
 								var batch_count = batch.length;
 								var last_post = batch[batch.length - 1];
 								last_post_permlink = last_post.permlink;
-								
+						
 								// Break if last permlink of this batch is the same as last permlink of previous batch
 								if (last_post_permlink === previous_batch_permlink)
 								{
 									return;	
 								}
-								// Update previous batch
-								previous_batch_permlink = last_post.permlink;
-								
+							
 								batch.forEach(function(element)
 								{
+									if (element.permlink === previous_batch_permlink)
+									{
+										return;	
+									}
 									if (posts_arr.length >= mn_sf_limit)
 									{
 										return;	
@@ -251,6 +253,9 @@ function display_steemit($atts, $content = null) {
 										}
 									}
 								});
+								
+								// Update previous batch
+								previous_batch_permlink = last_post.permlink;
 					
 							}).fail(function (jqXHR, exception) 
 							{
