@@ -3,7 +3,7 @@ Contributors: minitekgr
 Tags: Steemit, Steemit feed, Steemit posts, Steemit articles, Steemit widget, Steem, cryptocurrency, bitcoin
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -44,9 +44,11 @@ See the table below for a full list of available shortcode options:
 * **General Settings**
 * **username** - A Steemit Username - Example: `[steemit-feed username="wordpress-tips"]`
 * **referral** - A Steemit Username - Example: `[steemit-feed referral="wordpress-tips"]`
-* **Posts Settings**
+* **Data Source**
 * **postscount** - Total posts in feed (integer) - Example: `[steemit-feed postscount="5"]`
+* **includedtags** - Include posts from these tags (tags separated by commas) - Example: `[steemit-feed includedtags="foo,bar"]`
 * **excludedtags** - Exclude posts with these tags (tags separated by commas) - Example: `[steemit-feed excludedtags="foo,bar"]`
+* **Posts Settings**
 * **postimage** - Show post image (true or false) - Example: `[steemit-feed postimage="true"]`
 * **posttitle** - Show post title (true or false) - Example: `[steemit-feed posttitle="true"]`
 * **postcontent** - Show post content (true or false) - Example: `[steemit-feed postcontent="false"]`
@@ -74,6 +76,13 @@ If you need support, please [open a support ticket](https://wordpress.org/suppor
 Yes, Steemit Feed should work with any theme.
 
 == Changelog ==
+
+= 1.0.5 =
+* You can now include or exclude posts from specific tags.
+* Fixed bug where the posts count was not correct when excluding tags.
+* Fixed bug where the author reputation did not display on synchronous load.
+* Changed method of asynchronous loading.
+* Small changes in admin layout.
 
 = 1.0.4 =
 * Fixes stripslashes bug in body text.

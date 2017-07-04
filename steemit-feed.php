@@ -3,7 +3,7 @@
 Plugin Name: Steemit Feed
 Plugin URI: https://steemit.com/steemit/@wordpress-tips/steemit-for-wordpress-1-display-your-steemit-blog-in-your-wordpress-website-with-this-free-plugin
 Description: A simple Wordpress plugin that displays a feed of your Steemit posts.
-Version: 1.0.4
+Version: 1.0.5
 Author: Minitek.gr
 Author URI: https://www.minitek.gr/
 License: GPLv3 or later
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-define( 'MNSFVER', '1.0.4' );
+define( 'MNSFVER', '1.0.5' );
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 //Include admin
@@ -46,8 +46,8 @@ function display_steemit($atts, $content = null) {
     array(
         'username' => isset($options[ 'mn_steemit_username' ]) ? $options[ 'mn_steemit_username' ] : '',
 		'referral' => isset($options[ 'mn_steemit_referral' ]) ? $options[ 'mn_steemit_referral' ] : '',
-		'ajaxtheme' => isset($options[ 'mn_steemit_ajax_theme' ]) ? $options[ 'mn_steemit_ajax_theme' ] : '',
 		'postscount' => isset($options[ 'mn_steemit_posts_count' ]) ? $options[ 'mn_steemit_posts_count' ] : '',
+		'includedtags' => isset($options[ 'mn_steemit_included_tags' ]) ? $options[ 'mn_steemit_included_tags' ] : '',
 		'excludedtags' => isset($options[ 'mn_steemit_excluded_tags' ]) ? $options[ 'mn_steemit_excluded_tags' ] : '',
 		'postimage' => isset($options[ 'mn_steemit_post_image' ]) ? $options[ 'mn_steemit_post_image' ] : '',
         'posttitle' => isset($options[ 'mn_steemit_post_title' ]) ? $options[ 'mn_steemit_post_title' ] : '',
@@ -70,13 +70,6 @@ function display_steemit($atts, $content = null) {
     //Post Settings
 	$mn_steemit_posts_count = $atts['postscount'];
 	
-	// Show author rep
-	$mn_steemit_author_rep = $atts['authorrep'];
-
-    //Ajax theme
-    $mn_steemit_ajax_theme = $atts['ajaxtheme'];
-    ( $mn_steemit_ajax_theme == 'on' || $mn_steemit_ajax_theme == 'true' || $mn_steemit_ajax_theme == true ) ? $mn_steemit_ajax_theme = true : $mn_steemit_ajax_theme = false;
-
     /******************* CONTENT ********************/
 
     $mn_steemit_content = '<div id="mn_steem_feed_'.$i.'" class="sfi">';
@@ -120,12 +113,7 @@ function display_steemit($atts, $content = null) {
 	';
 	wp_enqueue_style( 'mn_steemit_custom_style', plugins_url('css/mn-steemit-style-custom.css', __FILE__), array(), MNSFVER, 'all' );
 	wp_add_inline_style( 'mn_steemit_custom_style', $custom_css );
-	 	
-	 //If using an ajax theme then add the JS to the bottom of the feed
-    if($mn_steemit_ajax_theme){
-        $mn_steemit_content .= "<script type='text/javascript' src='".plugins_url( '/js/steem.min.js?ver='.MNSFVER , __FILE__ )."'></script>";
-    }
-	
+	 		
 	// Add script
 	if( isset($mn_steemit_username) && $mn_steemit_username )
 	{
@@ -140,43 +128,180 @@ function display_steemit($atts, $content = null) {
 			$mn_sf_ajaxurl = admin_url( 'admin-ajax.php' );
 			$encoded_atts = json_encode($atts);
 			
+			// Included tags
+			$included_tags = '[]';
+			if ($atts['includedtags'])
+			{
+				$included_tags = array_map( 'trim', explode( ',', $atts['includedtags'] ) );
+				$included_tags = json_encode($included_tags);
+			}
+
+			// Excluded tags
+			$excluded_tags = '[]';
+			if ($atts['excludedtags'])
+			{
+				$excluded_tags = array_map( 'trim', explode( ',', $atts['excludedtags'] ) );
+				$excluded_tags = json_encode($excluded_tags);
+			}
+		
 			$js = "
 			<script type='text/javascript'>
 				(function($) {
-					$(function(){
-						// to-do: Localize javascript variables to move javascript in external js file
+					$(function()
+					{
 						var mn_sf_id = '".$i."';
 						var mn_sf_author = '".$mn_sf_author."';
 						var mn_sf_datenow = '".$mn_sf_datenow."';
 						var mn_sf_limit = '".$mn_sf_limit."';
+						mn_sf_limit = parseInt(mn_sf_limit, 10);
 						var mn_sf_ajaxurl = '".$mn_sf_ajaxurl."';
 						var encoded_atts = '".$encoded_atts."';
-						var show_author_rep = '".$mn_steemit_author_rep."';
-						
-						mn_sf_limit = parseInt(mn_sf_limit, 10);
+						var includedtags = ".$included_tags.";
+						var excludedtags = ".$excluded_tags.";
+				
+						// Define posts array, permlinks and api url
+						var posts_arr = [];
+						var previous_batch_permlink = '';
+						var last_post_permlink = '';
 					
-						steem.api.getDiscussionsByAuthorBeforeDate(mn_sf_author, '', mn_sf_datenow, mn_sf_limit, function(err, response)
+						// Starting posts count = 0
+						var c = 0;
+						while (c <= mn_sf_limit)
 						{
-							if (typeof response === 'object')
+							if (posts_arr.length >= mn_sf_limit)
 							{
-								var data = {
-									'action'	: 'render_steem_feed',
-									'feed'		: encodeURIComponent(JSON.stringify(response)),
-									'atts'		: encodeURIComponent(encoded_atts)
-								};
+								break;	
+							}
+							
+							var raw_url = 'https://api.steemjs.com/get_discussions_by_author_before_date?author=' + mn_sf_author + '&startPermlink=' + last_post_permlink + '&beforeDate=' + mn_sf_datenow + '&limit=' + mn_sf_limit + '';
+							
+							$.ajax({ 
+								url: raw_url,
+								async: false
+							}).done(function (temp) 
+							{
+								var batch = temp;
+			
+								// Track last permlink of this batch
+								var batch_count = batch.length;
+								var last_post = batch[batch.length - 1];
+								last_post_permlink = last_post.permlink;
 						
-								$.post(mn_sf_ajaxurl, data, function(msg) 
+								// Break if last permlink of this batch is the same as last permlink of previous batch
+								if (last_post_permlink === previous_batch_permlink)
 								{
-									$('.steem-feed-'+mn_sf_id+'').html(msg);
-									
-									if (show_author_rep === 1 || show_author_rep === '1' || show_author_rep === true || show_author_rep === 'true')
+									return;	
+								}
+							
+								batch.forEach(function(element)
+								{
+									if (element.permlink === previous_batch_permlink)
 									{
-										var author_rep = steem.formatter.reputation(response[0]['author_reputation']);
-										$('.steem-feed-'+mn_sf_id+' .sf-li-rep').text(author_rep);
+										return;	
+									}
+									if (posts_arr.length >= mn_sf_limit)
+									{
+										return;	
+									}
+								
+									// Tags
+									var item_metadata = element.json_metadata;
+									var item_tags = JSON.parse(item_metadata).tags;
+									
+									// Add item to posts
+									if ($.inArray(element, posts_arr) === -1)
+									{
+										if (includedtags.length === 0 && excludedtags.length === 0)
+										{
+											posts_arr.push(element);
+										}
+										else
+										{
+											if (includedtags.length === 0 && excludedtags.length > 0)
+											{
+												var findTagsEx = item_tags.filter(function(fs) {
+    												return excludedtags.some(function(ff) { return fs.indexOf(ff) > -1 });
+												});
+												if (findTagsEx.length === 0)
+												{
+													posts_arr.push(element);
+												}
+											}
+											else if (includedtags.length > 0 && excludedtags.length === 0)
+											{
+												var findTagsIn = item_tags.filter(function(fs) {
+    												return includedtags.some(function(ff) { return fs.indexOf(ff) > -1 });
+												});
+												if (findTagsIn.length > 0)
+												{
+													posts_arr.push(element);
+												}
+											}
+											else if (includedtags.length > 0 && excludedtags.length > 0)
+											{
+												var findTagsIn = item_tags.filter(function(fs) {
+    												return includedtags.some(function(ff) { return fs.indexOf(ff) > -1 });
+												});
+												var findTagsEx = item_tags.filter(function(fs) {
+    												return excludedtags.some(function(ff) { return fs.indexOf(ff) > -1 });
+												});
+												if (findTagsIn.length > 0 && findTagsEx.length === 0)
+												{
+													posts_arr.push(element);
+												}
+											}
+										}
 									}
 								});
+								
+								// Update previous batch
+								previous_batch_permlink = last_post.permlink;
+					
+							}).fail(function (jqXHR, exception) 
+							{
+								var msg = '';
+								if (jqXHR.status === 0) {
+									msg = 'No connection. Verify Network.';
+								} else if (jqXHR.status == 404) {
+									msg = 'Requested page not found. [404]';
+								} else if (jqXHR.status == 500) {
+									msg = 'Internal Server Error [500].';
+								} else if (exception === 'parsererror') {
+									msg = 'Requested JSON parse failed.';
+								} else if (exception === 'timeout') {
+									msg = 'Time out error.';
+								} else if (exception === 'abort') {
+									msg = 'Ajax request aborted.';
+								} else {
+									msg = 'Uncaught Error.' + jqXHR.responseText;
+								}
+								$('.steem-feed-'+mn_sf_id+'').html(msg);
+							});
+							
+							// Update posts count
+							c = posts_arr.length;
+														
+							// Change limit if limit == 1 and posts is empty
+							if (c === 0 && mn_sf_limit === 1)
+							{
+								mn_sf_limit = 2;
 							}
-						})
+						}
+												
+						if (posts_arr.length > 0)
+						{
+							var data = {
+								'action'	: 'render_steem_feed',
+								'feed'		: encodeURIComponent(JSON.stringify(posts_arr)),
+								'atts'		: encodeURIComponent(encoded_atts)
+							};
+					
+							$.post(mn_sf_ajaxurl, data, function(msg) 
+							{
+								$('.steem-feed-'+mn_sf_id+'').html(msg);
+							});
+						}
+													
 					});
 				})(jQuery)
 			</script>
@@ -186,12 +311,104 @@ function display_steemit($atts, $content = null) {
 		}
 		else
 		{
-			$raw_url = 'https://api.steemjs.com/get_discussions_by_author_before_date?author='.$mn_sf_author.'&startPermlink=&beforeDate='.$mn_sf_datenow.'&limit='.$mn_sf_limit;
-			$posts = file_get_contents($raw_url);
-			//$posts = sf_get_curl_data($raw_url); // To-do
-			$isjson = sf_is_json($posts);
+			// Included tags
+			$included_tags = array();
+			if ($atts['includedtags'])
+			{
+				$included_tags = array_map( 'trim', explode( ',', $atts['includedtags'] ) );
+			}
+
+			// Excluded tags
+			$excluded_tags = array();
+			if ($atts['excludedtags'])
+			{
+				$excluded_tags = array_map( 'trim', explode( ',', $atts['excludedtags'] ) );
+			}
+		
+			// Define posts array and permlinks
+			$posts = array();
+			$previous_batch_permlink = '';
+			$last_post_permlink = '';
 			
-			if ($isjson)
+			// Starting posts count = 0
+			$c = 0;
+			while ($c < $mn_sf_limit)
+			{
+				// API call
+				$raw_url = 'https://api.steemjs.com/get_discussions_by_author_before_date?author='.$mn_sf_author.'&startPermlink='.$last_post_permlink.'&beforeDate='.$mn_sf_datenow.'&limit='.$mn_sf_limit;
+				$temp = file_get_contents($raw_url);
+				$isjson = sf_is_json($temp);
+			
+				if ($isjson)
+				{
+					$batch = json_decode($temp, false);
+			
+					// Track last permlink of this batch
+					$batch_count = count($batch);
+					$last_post = $batch[$batch_count - 1];
+					$last_post_permlink = $last_post->permlink;
+					
+					// Break if last permlink of this batch is the same as last permlink of previous batch
+					if ($last_post_permlink === $previous_batch_permlink) break;
+					// Update previous batch
+					$previous_batch_permlink = $last_post->permlink;
+					
+					foreach ($batch as $item)
+					{
+						if (count($posts) >= $mn_sf_limit)
+						{
+							break;	
+						}
+					
+						// Metadata
+						$metadata = json_decode($item->json_metadata, false);
+					
+						// Add item to posts
+						if (!in_array($item, $posts))
+						{
+							if (empty($included_tags) && empty($excluded_tags))
+							{
+								$posts[] = $item;
+							}
+							else
+							{
+								if (empty($included_tags) && !empty($excluded_tags))
+								{
+									if (empty(array_intersect($metadata->tags, $excluded_tags)))
+									{
+										$posts[] = $item;
+									}
+								}
+								else if (!empty($included_tags) && empty($excluded_tags))
+								{
+									if (!empty(array_intersect($metadata->tags, $included_tags)))
+									{
+										$posts[] = $item;
+									}
+								}
+								else if (!empty($included_tags) && !empty($excluded_tags))
+								{
+									if (!empty(array_intersect($metadata->tags, $included_tags)) && empty(array_intersect($metadata->tags, $excluded_tags)))
+									{
+										$posts[] = $item;
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				// Update posts count
+				$c = count($posts);
+				
+				// Change limit if limit == 1 and posts is empty
+				if ($c === 0 && $mn_sf_limit === 1)
+				{
+					$mn_sf_limit = 2;
+				}
+			}	
+			
+			if (count($posts))
 			{
 				$feed = mn_render_steem_feed($posts, $atts);
 				
@@ -221,7 +438,7 @@ function mn_render_steem_feed($posts = false, $params = false) {
 	}
 	else
 	{
-		$decodejson = json_decode($posts, false);
+		$decodejson = $posts;
 	}
 	
 	if (!$params)
@@ -237,9 +454,6 @@ function mn_render_steem_feed($posts = false, $params = false) {
 	
 	// Referral code
 	$referral_code = $atts['referral'] ? '?r='.$atts['referral'] : '';
-	
-	// Excluded tags
-	$excluded_tags = array_map( 'trim', explode( ',', $atts['excludedtags'] ) );
 
 	if (count($decodejson))
 	{
@@ -253,14 +467,6 @@ function mn_render_steem_feed($posts = false, $params = false) {
 							
 				// Metadata
 				$metadata = json_decode($item->json_metadata, false);
-
-				foreach ( (array) $metadata->tags as $tag )
-				{
-					if ( in_array( $tag, $excluded_tags ) )
-					{
-						continue 2;
-					}
-				}
 
 				$html .= '<li class="sf-li">';
 						 
@@ -339,7 +545,9 @@ function mn_render_steem_feed($posts = false, $params = false) {
 													$html .= ' '.__('by', 'steemit-feed' ).' <a href="https://steemit.com/@'.$item->author.''.$referral_code.'" target="_blank">'.$item->author.'</a>';
 													if ($atts['authorrep'] === 1 || $atts['authorrep'] === '1' || $atts['authorrep'] === true || $atts['authorrep'] === 'true')
 													{
-														$html .= '<span class="sf-li-rep"></span>';
+														$html .= '<span class="sf-li-rep">';
+														$html .= sf_format_reputation($item->author_reputation);
+														$html .= '</span>';
 													}
 												$html .= '</span>';
 											}
@@ -473,26 +681,31 @@ function sf_replies_count($author, $permlink)
 	}
 }
 
+function sf_format_reputation($reputation)
+{
+	if ($reputation == null) return $reputation;
+
+	$is_neg = $reputation < 0 ? true : false;
+	$rep = $is_neg ? abs($reputation) : $reputation;
+	$str = $rep;
+	$leadingDigits = (int)substr($str, 0, 4);
+	$log = log($leadingDigits) / log(10);
+	$n = strlen((string)$str) - 1;
+	$out = $n + ($log - (int)$log);
+	if (!($out)) $out = 0;
+	$out = max($out - 9, 0);
+	$out = ($is_neg ? -1 : 1) * $out;
+	$out = $out * 9 + 25;
+	$out = (int)$out;
+	
+	return $out;
+}
+
 function sf_is_json($string) 
 {
 	json_decode($string);
 	
 	return (json_last_error() == JSON_ERROR_NONE);
-}
-
-function sf_get_curl_data($url) 
-{
-	$ch = curl_init();
-
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($ch, CURLOPT_HEADER, FALSE);
-
-	$data = curl_exec($ch);
-
-	curl_close($ch);
-	
-	return $data;
 }
 
 #############################
@@ -511,22 +724,6 @@ function mn_steemit_styles_enqueue() {
         if( !$options['mn_steemit_disable_awesome'] || !isset($options['mn_steemit_disable_awesome']) ) wp_enqueue_style( 'mn_steemit_icons', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css', array(), '4.6.3' );
     }
     
-}
-
-//Enqueue scripts
-add_action( 'wp_enqueue_scripts', 'mn_steemit_scripts_enqueue' );
-function mn_steemit_scripts_enqueue() {
-    //Register the script to make it available
-    wp_register_script( 'mn_steemit_scripts', 'https://cdn.steemjs.com/lib/latest/steem.min.js', array('jquery'), MNSFVER, true );
-
-    //Options to pass to JS file
-    $mn_steemit_settings = get_option('mn_steemit_settings');
-
-    isset($mn_steemit_settings[ 'mn_steemit_ajax_theme' ]) ? $mn_steemit_ajax_theme = trim($mn_steemit_settings['mn_steemit_ajax_theme']) : $mn_steemit_ajax_theme = '';
-    ( $mn_steemit_ajax_theme == 'on' || $mn_steemit_ajax_theme == 'true' || $mn_steemit_ajax_theme == true ) ? $mn_steemit_ajax_theme = true : $mn_steemit_ajax_theme = false;
-
-    //Enqueue it to load it onto the page
-    if( !$mn_steemit_ajax_theme ) wp_enqueue_script('mn_steemit_scripts');
 }
 
 //Run function on plugin activate
