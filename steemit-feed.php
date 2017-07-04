@@ -164,6 +164,39 @@ function display_steemit($atts, $content = null) {
 						var previous_batch_permlink = '';
 						var last_post_permlink = '';
 					
+						// Check for limit
+						var raw_url = 'https://api.steemjs.com/get_discussions_by_author_before_date?author=' + mn_sf_author + '&startPermlink=' + last_post_permlink + '&beforeDate=' + mn_sf_datenow + '&limit=' + mn_sf_limit + '';
+							
+						$.ajax({ 
+							url: raw_url,
+							async: false
+						}).done(function (temp) 
+						{
+							if (temp.length < mn_sf_limit)
+							{
+								mn_sf_limit = temp.length;
+							}
+						}).fail(function (jqXHR, exception) 
+						{
+							var msg = '';
+							if (jqXHR.status === 0) {
+								msg = 'No connection. Verify Network.';
+							} else if (jqXHR.status == 404) {
+								msg = 'Requested page not found. [404]';
+							} else if (jqXHR.status == 500) {
+								msg = 'Internal Server Error [500].';
+							} else if (exception === 'parsererror') {
+								msg = 'Requested JSON parse failed.';
+							} else if (exception === 'timeout') {
+								msg = 'Time out error.';
+							} else if (exception === 'abort') {
+								msg = 'Ajax request aborted.';
+							} else {
+								msg = 'Uncaught Error.' + jqXHR.responseText;
+							}
+							$('.steem-feed-'+mn_sf_id+'').html(msg);
+						});
+						
 						// Starting posts count = 0
 						var c = 0;
 						while (c <= mn_sf_limit)
