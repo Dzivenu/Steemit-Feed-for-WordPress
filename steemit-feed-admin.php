@@ -243,7 +243,6 @@ function mn_steemit_settings_page() {
                     <td>
                         <input name="mn_steemit_included_tags" type="text" value="<?php echo esc_attr( $mn_steemit_included_tags ); ?>" size="40" />
 						<p class="howto"><?php _e('Separate tags with commas.', 'steemit-feed'); ?></p>
-						<p class="howto"><?php _e('Works only if <b>"Load asynchronously"</b> is set to "<b>No</b>".', 'steemit-feed'); ?></p>
                     </td>
                 </tr>
 				
@@ -252,7 +251,6 @@ function mn_steemit_settings_page() {
                     <td>
                         <input name="mn_steemit_excluded_tags" type="text" value="<?php echo esc_attr( $mn_steemit_excluded_tags ); ?>" size="40" />
 						<p class="howto"><?php _e('Separate tags with commas.', 'steemit-feed'); ?></p>
-						<p class="howto"><?php _e('Works only if <b>"Load asynchronously"</b> is set to "<b>No</b>".', 'steemit-feed'); ?></p>
                     </td>
                 </tr>
 				
