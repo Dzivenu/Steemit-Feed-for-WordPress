@@ -2,6 +2,9 @@
 
 Display Steemit posts from any Steemit username.
 
+- 1.0.5 -
+https://steemit.com/wordpress/@wordpress-tips/update-steemit-feed-for-wordpress-v-1-0-5-include-exclude-tags
+
 - 1.0.4 -
 https://steemit.com/wordpress/@wordpress-tips/update-steemit-feed-for-wordpress-v-1-0-4-synchronous-asynchronous-loading-other-improvements
 
