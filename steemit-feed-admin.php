@@ -25,6 +25,7 @@ function mn_steemit_settings_page() {
     //Hidden fields
     $mn_steemit_settings_hidden_field = 'mn_steemit_settings_hidden_field';
     $mn_steemit_general_hidden_field = 'mn_steemit_general_hidden_field';
+	$mn_steemit_datasource_hidden_field = 'mn_steemit_datasource_hidden_field';
     $mn_steemit_postsettings_hidden_field = 'mn_steemit_postsettings_hidden_field';
 
     //Declare defaults
@@ -32,12 +33,13 @@ function mn_steemit_settings_page() {
 		// General
         'mn_steemit_username'				=> '',
 		'mn_steemit_referral'				=> '',
-		'mn_steemit_ajax_theme'           	=> false, 
         'mn_steemit_disable_awesome'      	=> false,
-		// Posts settings
+		// Data source
 		'mn_steemit_posts_count'			=> '5',
+		'mn_steemit_included_tags'			=> '',
 		'mn_steemit_excluded_tags'			=> '',
-		'mn_steemit_asynchronous'			=> true,
+		'mn_steemit_asynchronous'			=> false,
+		// Posts settings
 		'mn_steemit_post_image'				=> true,
         'mn_steemit_post_title'				=> true,
         'mn_steemit_post_content'			=> true,
@@ -61,12 +63,13 @@ function mn_steemit_settings_page() {
 	// General
     $mn_steemit_username = $options[ 'mn_steemit_username' ];
 	$mn_steemit_referral = $options[ 'mn_steemit_referral' ];
-    $mn_steemit_ajax_theme = $options[ 'mn_steemit_ajax_theme' ];
     $mn_steemit_disable_awesome = $options[ 'mn_steemit_disable_awesome' ];
-	// Posts settings
+	// Data source
 	$mn_steemit_posts_count = $options['mn_steemit_posts_count'];
+	$mn_steemit_included_tags = $options[ 'mn_steemit_included_tags' ];
 	$mn_steemit_excluded_tags = $options[ 'mn_steemit_excluded_tags' ];
 	$mn_steemit_asynchronous = $options[ 'mn_steemit_asynchronous' ];
+	// Posts settings
 	$mn_steemit_post_image = $options[ 'mn_steemit_post_image' ];
     $mn_steemit_post_title = $options[ 'mn_steemit_post_title' ];
     $mn_steemit_post_content = $options[ 'mn_steemit_post_content' ];
@@ -93,21 +96,31 @@ function mn_steemit_settings_page() {
 
                 $mn_steemit_username = sanitize_text_field( $_POST[ 'mn_steemit_username' ] );
 				$mn_steemit_referral = sanitize_text_field( $_POST[ 'mn_steemit_referral' ] );
-                isset($_POST[ 'mn_steemit_ajax_theme' ]) ? $mn_steemit_ajax_theme = sanitize_text_field( $_POST[ 'mn_steemit_ajax_theme' ] ) : $mn_steemit_ajax_theme = '';
                 isset($_POST[ 'mn_steemit_disable_awesome' ]) ? $mn_steemit_disable_awesome = sanitize_text_field( $_POST[ 'mn_steemit_disable_awesome' ] ) : $mn_steemit_disable_awesome = '';
 
                 $options[ 'mn_steemit_username' ] = $mn_steemit_username;
 				$options[ 'mn_steemit_referral' ] = $mn_steemit_referral;
-                $options[ 'mn_steemit_ajax_theme' ] = $mn_steemit_ajax_theme;
 				$options[ 'mn_steemit_disable_awesome' ] = $mn_steemit_disable_awesome;
             } //End General tab post
 
-            if( isset($_POST[ $mn_steemit_postsettings_hidden_field ]) && $_POST[ $mn_steemit_postsettings_hidden_field ] == 'Y' ) {
+			if( isset($_POST[ $mn_steemit_datasource_hidden_field ]) && $_POST[ $mn_steemit_datasource_hidden_field ] == 'Y' ) {
                 
 				//Validate and sanitize options
                 $mn_steemit_posts_count = intval( sanitize_text_field( $_POST['mn_steemit_posts_count'] ) );
+				$mn_steemit_included_tags = sanitize_text_field( $_POST[ 'mn_steemit_included_tags' ] );
 				$mn_steemit_excluded_tags = sanitize_text_field( $_POST[ 'mn_steemit_excluded_tags' ] );
 				$mn_steemit_asynchronous = sanitize_text_field( $_POST[ 'mn_steemit_asynchronous' ] );
+                
+				$options[ 'mn_steemit_posts_count' ] = $mn_steemit_posts_count;
+				$options[ 'mn_steemit_included_tags' ] = $mn_steemit_included_tags;
+				$options[ 'mn_steemit_excluded_tags' ] = $mn_steemit_excluded_tags;
+				$options[ 'mn_steemit_asynchronous' ] = $mn_steemit_asynchronous;
+                
+            } //End Data Source tab post
+			
+            if( isset($_POST[ $mn_steemit_postsettings_hidden_field ]) && $_POST[ $mn_steemit_postsettings_hidden_field ] == 'Y' ) {
+                
+				//Validate and sanitize options
                 $mn_steemit_post_image = sanitize_text_field( $_POST['mn_steemit_post_image'] );
                 $mn_steemit_post_title = sanitize_text_field( $_POST['mn_steemit_post_title'] );
                 $mn_steemit_post_content = sanitize_text_field( $_POST['mn_steemit_post_content'] );
@@ -123,9 +136,6 @@ function mn_steemit_settings_page() {
 				$mn_steemit_title_font_size = sanitize_text_field( $_POST[ 'mn_steemit_title_font_size' ] );
 				$mn_steemit_body_font_size = sanitize_text_field( $_POST[ 'mn_steemit_body_font_size' ] );
                 
-				$options[ 'mn_steemit_posts_count' ] = $mn_steemit_posts_count;
-				$options[ 'mn_steemit_excluded_tags' ] = $mn_steemit_excluded_tags;
-				$options[ 'mn_steemit_asynchronous' ] = $mn_steemit_asynchronous;
                 $options[ 'mn_steemit_post_image' ] = $mn_steemit_post_image;
                 $options[ 'mn_steemit_post_title' ] = $mn_steemit_post_title;
                 $options[ 'mn_steemit_post_content' ] = $mn_steemit_post_content;
@@ -165,8 +175,9 @@ function mn_steemit_settings_page() {
             <?php $sfi_active_tab = isset( $_GET[ 'tab' ] ) ? $_GET[ 'tab' ] : 'general'; ?>
             <h2 class="nav-tab-wrapper">
                 <a href="?page=mn-steemit-feed&amp;tab=general" class="nav-tab <?php echo $sfi_active_tab == 'general' ? 'nav-tab-active' : ''; ?>"><?php _e('1. General', 'steemit-feed'); ?></a>
-                <a href="?page=mn-steemit-feed&amp;tab=postsettings" class="nav-tab <?php echo $sfi_active_tab == 'postsettings' ? 'nav-tab-active' : ''; ?>"><?php _e('2. Posts Settings', 'steemit-feed'); ?></a>
-                <a href="?page=mn-steemit-feed&amp;tab=display" class="nav-tab <?php echo $sfi_active_tab == 'display' ? 'nav-tab-active' : ''; ?>"><?php _e('3. Display Your Feed', 'steemit-feed'); ?></a>
+                <a href="?page=mn-steemit-feed&amp;tab=datasource" class="nav-tab <?php echo $sfi_active_tab == 'datasource' ? 'nav-tab-active' : ''; ?>"><?php _e('2. Data Source', 'steemit-feed'); ?></a>
+			    <a href="?page=mn-steemit-feed&amp;tab=postsettings" class="nav-tab <?php echo $sfi_active_tab == 'postsettings' ? 'nav-tab-active' : ''; ?>"><?php _e('3. Posts Settings', 'steemit-feed'); ?></a>
+                <a href="?page=mn-steemit-feed&amp;tab=display" class="nav-tab <?php echo $sfi_active_tab == 'display' ? 'nav-tab-active' : ''; ?>"><?php _e('4. Display Your Feed', 'steemit-feed'); ?></a>
                 <a href="?page=mn-steemit-feed&amp;tab=support" class="nav-tab <?php echo $sfi_active_tab == 'support' ? 'nav-tab-active' : ''; ?>"><?php _e('Support', 'steemit-feed'); ?></a>
             </h2>
 
@@ -195,16 +206,6 @@ function mn_steemit_settings_page() {
 						    </span>                                                       
                         </td>
                     </tr>
-
-                    <tr>
-                        <th class="bump-left"><label for="mn_steemit_ajax_theme" class="bump-left"><?php _e("Are you using an Ajax powered theme?", 'steemit-feed'); ?></label></th>
-                        <td>
-                            <input name="mn_steemit_ajax_theme" type="checkbox" id="mn_steemit_ajax_theme" <?php if($mn_steemit_ajax_theme == true) echo "checked"; ?> />
-                            <label for="mn_steemit_ajax_theme"><?php _e('Yes', 'steemit-feed'); ?></label>
-                            <a class="sfi_tooltip_link" href="JavaScript:void(0);"><?php _e('What does this mean?', 'steemit-feed'); ?></a>
-                            <p class="sfi_tooltip"><?php _e("When navigating your site, if your theme uses Ajax to load content into your pages (meaning your page doesn't refresh) then check this setting. If you're not sure then please check with the theme author.", 'steemit-feed'); ?></p>
-                        </td>
-                    </tr>
 					
 					<tr valign="top">
 						<th scope="row"><label><?php _e("Disable Font Awesome", 'steemit-feed'); ?></label></th>
@@ -219,15 +220,13 @@ function mn_steemit_settings_page() {
             <?php submit_button(); ?>
         </form>
 
-        <p><i class="fa fa-chevron-circle-right" aria-hidden="true"></i>&nbsp; <?php _e('Next Step: <a href="?page=mn-steemit-feed&tab=postsettings">Posts Settings</a>', 'steemit-feed'); ?></p>
+        <p><i class="fa fa-chevron-circle-right" aria-hidden="true"></i>&nbsp; <?php _e('Next Step: <a href="?page=mn-steemit-feed&tab=datasource">Data Source</a>', 'steemit-feed'); ?></p>
 
     <?php } // End General tab ?>
+	
+	<?php if( $sfi_active_tab == 'datasource' ) { //Start Data Source tab ?>
 
-    <?php if( $sfi_active_tab == 'postsettings' ) { //Start Posts Settings tab ?>
-
-    <input type="hidden" name="<?php echo $mn_steemit_postsettings_hidden_field; ?>" value="Y">
-
-		<h3><?php _e('Data Source', 'steemit-feed'); ?></h3>
+    <input type="hidden" name="<?php echo $mn_steemit_datasource_hidden_field; ?>" value="Y">
 		
 		<table class="form-table">
             <tbody>
@@ -240,10 +239,20 @@ function mn_steemit_settings_page() {
                 </tr>
 				
 				<tr valign="top">
+                    <th scope="row"><label><?php _e('Included Tags', 'steemit-feed'); ?></label></th>
+                    <td>
+                        <input name="mn_steemit_included_tags" type="text" value="<?php echo esc_attr( $mn_steemit_included_tags ); ?>" size="40" />
+						<p class="howto"><?php _e('Separate tags with commas.', 'steemit-feed'); ?></p>
+						<p class="howto"><?php _e('Works only if <b>"Load asynchronously"</b> is set to "<b>No</b>".', 'steemit-feed'); ?></p>
+                    </td>
+                </tr>
+				
+				<tr valign="top">
                     <th scope="row"><label><?php _e('Excluded Tags', 'steemit-feed'); ?></label></th>
                     <td>
                         <input name="mn_steemit_excluded_tags" type="text" value="<?php echo esc_attr( $mn_steemit_excluded_tags ); ?>" size="40" />
 						<p class="howto"><?php _e('Separate tags with commas.', 'steemit-feed'); ?></p>
+						<p class="howto"><?php _e('Works only if <b>"Load asynchronously"</b> is set to "<b>No</b>".', 'steemit-feed'); ?></p>
                     </td>
                 </tr>
 				
@@ -263,6 +272,18 @@ function mn_steemit_settings_page() {
             </tbody>
         </table>
 		
+        <?php submit_button(); ?>
+
+    </form>
+
+	<p><i class="fa fa-chevron-circle-right" aria-hidden="true"></i>&nbsp; <?php _e('Next Step: <a href="?page=mn-steemit-feed&tab=postsettings">Posts Settings</a>', 'steemit-feed'); ?></p>
+
+    <?php } //End Data source tab ?>
+
+    <?php if( $sfi_active_tab == 'postsettings' ) { //Start Posts Settings tab ?>
+
+    <input type="hidden" name="<?php echo $mn_steemit_postsettings_hidden_field; ?>" value="Y">
+
         <h3><?php _e('Post Settings', 'steemit-feed'); ?></h3>
 
         <table class="form-table">
@@ -452,17 +473,24 @@ function mn_steemit_settings_page() {
                     <td><code>[steemit-feed referral="wordpress-tips"]</code></td>
                 </tr>
 
-                <tr class="sfi_table_header"><td colspan=3><?php _e("Posts Settings", 'steemit-feed'); ?></td></tr>
+                <tr class="sfi_table_header"><td colspan=3><?php _e("Data Source", 'steemit-feed'); ?></td></tr>
                 <tr>
                     <td>postscount</td>
                     <td><?php _e("Total posts in feed (integer).", 'steemit-feed'); ?></td>
                     <td><code>[steemit-feed postscount="5"]</code></td>
                 </tr>
 				<tr>
+                    <td>includedtags</td>
+                    <td><?php _e("Include certain tags (separated with commas).", 'steemit-feed'); ?></td>
+                    <td><code>[steemit-feed includedtags="foo,bar"]</code></td>
+                </tr>
+				<tr>
                     <td>excludedtags</td>
                     <td><?php _e("Exclude certain tags (separated with commas).", 'steemit-feed'); ?></td>
                     <td><code>[steemit-feed excludedtags="foo,bar"]</code></td>
                 </tr>
+				
+				<tr class="sfi_table_header"><td colspan=3><?php _e("Posts Settings", 'steemit-feed'); ?></td></tr>
                 <tr>
                     <td>postimage</td>
                     <td><?php _e("Show post image (true or false).", 'steemit-feed'); ?></td>
