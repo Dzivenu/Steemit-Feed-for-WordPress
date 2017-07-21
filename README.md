@@ -2,7 +2,7 @@
 
 Display a feed of Steemit posts from any Steem author.
 
-1 1.1.0 - 
+- 1.1.0 - 
 https://steemit.com/wordpress/@wordpress-tips/update-steemit-feed-for-wordpress-v-1-1-0-new-backend-many-improvements
 
 - 1.0.5 -
