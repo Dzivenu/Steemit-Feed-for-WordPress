@@ -98,12 +98,145 @@ class Steemit_Feed_Public {
 				$html .= $this->feed_create_items_wrapper($atts);
 				
 				// Pagination display
-				/*if ($feed_options['feed-pagination-type'][0]) 			
-				{ 
-					$custom_css .= $dynamicCss->getPaginationCss($feed_options, $feed_id);
-		
-					$html .= $this->feed_create_pagination_wrapper($atts);
-				}*/
+				if (isset($feed_options['feed-additional-pages'][0]) 
+				&& ((int)$feed_options['feed-additional-pages'][0] > 0
+				|| $feed_options['feed-additional-pages'][0] === '-1'))
+				{
+					$style = '';
+					if ($feed_options['feed-load-asynch'][0] == 'yes')
+					{
+						$style = 'style="display: none;"';	
+					}
+					$html .= '<div id="sf-pagination-'.$feed_id.'" class="sf-pagination" '.$style.'>';
+					$html .= '<a href="#" class="sf-btn" data-page="1">';
+					$html .= '<span class="sf-page-text">'. __('Load more', 'steemit-feed' ).'</span>';
+					$html .= '<span class="sf-page-end">'. __('No more posts', 'steemit-feed' ).'</span>';
+					$html .= '<span id="steemitfeed-page-loader-'.$feed_id.'" class="steemit-feed-page-loader"></span>';
+					$html .= '</a>';
+					$html .= '</div>';
+					
+					$sf_ajaxurl = admin_url( 'admin-ajax.php' );
+
+					$pagination_script = "
+						<script type='text/javascript'>
+						(function ($) {
+							$(document).ready(function() 
+							{
+								// Options
+								var feedId = ".$feed_id.";
+								var sf_ajaxurl = '".$sf_ajaxurl."';
+								
+								// Initialize spinner
+								var createPaginationSpinner = function()
+								{ 
+									var spinner_options = {
+									  lines: 8,
+									  length: 3,
+									  width: 3,
+									  radius: 3,
+									  corners: 1,
+									  rotate: 0,
+									  direction: 1,
+									  color: '#333',
+									  speed: 1,
+									  trail: 52,
+									  shadow: false,
+									  hwaccel: false,
+									  className: 'spinner',
+									  zIndex: 2e9,
+									  top: '50%',
+									  left: '50%'
+									};
+									$('#steemitfeed-page-loader-'+feedId+'').append(new Spinner(spinner_options).spin().el);
+									
+									return;
+								}
+								
+								// Pagination button click
+								$('#sf-pagination-'+feedId+'').on('click', 'a.sf-btn', function(e) {
+									e.preventDefault();
+									
+									if (!$(this).hasClass('sf-loading') && !$(this).hasClass('sf-disabled'))
+									{
+										$(this).addClass('sf-loading');
+										
+										// Get page number
+										var page = $('#sf-pagination-'+feedId+' .sf-btn').attr('data-page');
+										page = parseInt(page, 10);
+										
+										// Get last permlink
+										var permlink = $('#".$steemitfeed_id." .sf-li:last').data('permlink');
+									
+										// Check if spinner has initialized
+										if (!$('#steemitfeed-page-loader-'+feedId+' .spinner').length)
+											createPaginationSpinner();
+										
+										// Show loader
+										$('#sf-pagination-'+feedId+' .sf-page-text').hide();
+										$('#steemitfeed-page-loader-'+feedId+'').css('display', 'inline-block');
+									
+										// Load feed										
+										$.ajax({
+											type : 'post',
+											url : sf_ajaxurl,
+											data : {
+												action			: 'feed_create_items', 
+												feedid 			: ''+feedId+'',
+												'ajax'			: '1',
+												'permlink'		: ''+permlink+'',
+												'page'			: ''+page+''
+											}
+										}).done(function (response) 
+										{
+											$('#sf-pagination-'+feedId+' .sf-page-text').css('display', 'inline-block');
+											$('#steemitfeed-page-loader-'+feedId+'').hide();
+											var next_page = page + 1;
+											next_page = parseInt(next_page, 10);
+											$('#sf-pagination-'+feedId+' .sf-btn').attr('data-page', next_page);
+											$('#sf-pagination-'+feedId+' .sf-btn').removeClass('sf-loading');
+											if (!$.trim(response))
+											{
+												$('#sf-pagination-'+feedId+' .sf-btn').addClass('sf-disabled');
+												$('#sf-pagination-'+feedId+' .sf-page-text').hide();
+												$('#sf-pagination-'+feedId+' .sf-page-end').css('display', 'inline-block');
+											} 
+											else
+											{
+												$('#".$steemitfeed_id."').append(response);
+											}
+											
+										}).fail(function (jqXHR, exception) 
+										{
+											var msg = '';
+											if (jqXHR.status === 0) {
+												msg = 'No connection. Verify Network.';
+											} else if (jqXHR.status == 404) {
+												msg = 'Requested page not found. [404]';
+											} else if (jqXHR.status == 500) {
+												msg = 'Internal Server Error [500].';
+											} else if (exception === 'parsererror') {
+												msg = 'Requested JSON parse failed.';
+											} else if (exception === 'timeout') {
+												msg = 'Time out error.';
+											} else if (exception === 'abort') {
+												msg = 'Ajax request aborted.';
+											} else {
+												msg = 'Uncaught Error.' + jqXHR.responseText;
+											}
+											$('#sf-pagination-'+feedId+' .sf-page-text').css('display', 'inline-block');
+											$('#steemitfeed-page-loader-'+feedId+'').hide();
+											$('#sf-pagination-'+feedId+' .sf-btn').removeClass('sf-loading');
+											$('#".$steemitfeed_id."').append(response);
+										});
+									}
+								});
+							});
+							})(jQuery)
+						</script>
+					";	
+					
+					$html .= $pagination_script;
+				}
 			
 			$html .= '</div>';
 		
@@ -176,6 +309,8 @@ class Steemit_Feed_Public {
 						{
 							var sf_ajaxurl = '".$sf_ajaxurl."';
 							var feedId = ".$feed_id.";
+							
+							$('#sf-pagination-'+feedId+' .sf-btn').addClass('sf-loading');
 
 							// Load feed										
 							$.ajax({
@@ -189,6 +324,8 @@ class Steemit_Feed_Public {
 							}).done(function (response) 
 							{
 								$('#steemitfeed-loader-'+feedId+'').hide();
+								$('#sf-pagination-'+feedId+'').show();
+								$('#sf-pagination-'+feedId+' .sf-btn').removeClass('sf-loading');
 								$('#".$steemitfeed_id."').html(response);
 								
 							}).fail(function (jqXHR, exception) 
@@ -210,6 +347,7 @@ class Steemit_Feed_Public {
 									msg = 'Uncaught Error.' + jqXHR.responseText;
 								}
 								$('#steemitfeed-loader-'+feedId+'').hide();
+								$('#sf-pagination-'+feedId+' .sf-btn').removeClass('sf-loading');
 								$('#".$steemitfeed_id."').html(response);
 							});
 							
@@ -220,6 +358,7 @@ class Steemit_Feed_Public {
 			}
 		
 		$html .= '</div>';
+		
 		$html .= $asynch_script;
 		
 		return $html;
@@ -231,7 +370,7 @@ class Steemit_Feed_Public {
 	 * @since    1.1.0
 	 */
 	public function feed_create_items($atts) {
-		
+	
 		// Get ajax variables
 		$safe_ajax = (int)$_POST['ajax'];
 		if ($safe_ajax == '1')
@@ -246,13 +385,15 @@ class Steemit_Feed_Public {
 		if ($ajax)
 		{
 			$feed_id = (int)$_POST['feedid'];
-			//$page_number = (int)$_POST['feedpage'];
+			$permlink = $_POST['permlink'];
+			$page = (int)$_POST['page'];
 		}
 		else
 		{
 			$atts = shortcode_atts(array('id' => ""), $atts, 'steemitfeed');
 			$feed_id = $atts['id'];
-			//$page_number = 1;
+			$permlink = false;
+			$page = false;
 		}
 		$feed_options = get_post_meta( $feed_id, '', false );
 		$utilities = new Steemit_Feed_Utilities();
@@ -283,9 +424,9 @@ class Steemit_Feed_Public {
 		$this->detailBoxReward = $feed_options['feed-item-reward'][0];
 		$this->detailBoxVotes = $feed_options['feed-item-votes'][0];
 		$this->detailBoxComments = $feed_options['feed-item-comments-count'][0];
-				
+	
 		// Query items
-		$queryItems = $dataSource->feed_query_items($feed_options, $ajax);
+		$queryItems = $dataSource->feed_query_items($feed_options, $ajax, $permlink, $page);
 
 		foreach ($queryItems as $key => $item) 
 		{
@@ -357,74 +498,7 @@ class Steemit_Feed_Public {
 			return $items;	
 		}
 	}
-	
-	/**
-	 * Creates the pagination wrapper.
-	 *
-	 * @since    1.1.0
-	 */
-	/*public function feed_create_pagination_wrapper($atts) {
-		
-		// Get feed data
-		$atts = shortcode_atts(array('id' => ""), $atts, 'steemitfeed');
-		$feed_id = $atts['id'];
-		$feed_options = get_post_meta( $feed_id, '', false );
-		$feed_pagination_id = 'steemitfeed-pagination-'.$feed_id;
-		$dataSource = new Steemit_Feed_Data();
-						
-		// Create pagination wrapper
-		$html = '<div id="'.$feed_pagination_id.'" class="steemitfeed-pagination">';
-		
-			$html .= $this->feed_create_pagination($atts);
-		
-		$html .= '</div>';
-		
-		return $html;
-	}*/
-	
-	/**
-	 * Creates the pagination.
-	 *
-	 * @since    1.1.0
-	 */
-	/*public function feed_create_pagination($atts) {
-		
-		// Get ajax variables
-		$safe_ajax = (int)$_POST['ajax'];
-		if ($safe_ajax == '1')
-		{
-			$ajax = true;	
-		}
-		else
-		{
-			$ajax = false;	
-		}
-		
-		// Get feed options
-		if ($ajax)
-		{
-			$feed_id = (int)$_POST['feedid'];
-		}
-		else
-		{
-			$atts = shortcode_atts(array('id' => ""), $atts, 'steemitfeed');
-			$feed_id = $atts['id'];
-		}
-		$feed_options = get_post_meta( $feed_id, '', false );
-			
-		// Get pagination from file
-		ob_start();
-			include( plugin_dir_path( __FILE__ ) . 'partials/steemit-feed-public-pagination.php' );		
-			$pagination = ob_get_clean();		
-		
-		if ($ajax) {
-			echo $pagination;
-			wp_die();
-		} else {
-			return $pagination;	
-		}
-	}*/	
-		
+				
 	/**
 	 * Register the stylesheets for the public-facing side of the site.
 	 *
