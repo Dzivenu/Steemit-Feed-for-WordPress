@@ -8,7 +8,7 @@
  * Plugin Name:       	Steemit Feed
  * Plugin URI:        	https://steemit.com/@wordpress-tips
  * Description:       	A simple Wordpress plugin that displays a feed of Steemit posts.
- * Version:           	1.1.0
+ * Version:           	1.1.1
  * Author: 				Minitek.gr
  * Author URI: 			https://www.minitek.gr/
  * License: 			GPLv3 or later
