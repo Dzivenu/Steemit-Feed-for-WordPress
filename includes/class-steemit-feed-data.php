@@ -24,16 +24,17 @@ class Steemit_Feed_Data {
 	 *
 	 * @since    1.1.0
 	 */
-	public function feed_query_items($feed_options, $ajax = false, $page_number = false) 
+	public function feed_query_items($feed_options, $ajax = false, $permlink, $page) 
 	{
 		// Options - Data source
 		$mn_sf_author = trim($feed_options['feed-author'][0]);
 		$mn_sf_datenow = current_time( 'Y-m-d\TH:i:s' );
+		$last_post_permlink = '';
 										
 		// Options - Pagination
 		$feed_initial_items = (int)$feed_options['feed-initial-items'][0];
-		//$feed_items_per_page = (int)$feed_options['feed-items-per-page'][0];
-		//$feed_additional_pages = (int)$feed_options['feed-additional-pages'][0];
+		$feed_items_per_page = (int)$feed_options['feed-items-per-page'][0];
+		$feed_additional_pages = (int)$feed_options['feed-additional-pages'][0];
 			
 		// Page load
 		if (!$ajax)
@@ -44,14 +45,18 @@ class Steemit_Feed_Data {
 		else
 		{
 			$posts_per_page = $feed_initial_items;	
-			// Get page from $_POST
-			//$paged = (int)$page_number;
 			
-			// Check for allowed additional pages
-			/*if (($paged > $feed_additional_pages) && $feed_additional_pages != '-1')
+			if ($permlink)
 			{
-				return false;	
-			}*/
+				$posts_per_page = $feed_items_per_page;	
+				$last_post_permlink = $permlink;
+				
+				// Check for allowed additional pages
+				if ($page && $page > $feed_additional_pages)
+				{
+					return false;	
+				}
+			}
 		}
 			
 		// Included tags
@@ -67,11 +72,17 @@ class Steemit_Feed_Data {
 		{
 			$excluded_tags = array_map( 'trim', explode( ',', $feed_options['feed-tags-exclude'][0] ) );
 		}
+		
+		// Excluded posts
+		$excluded_posts = array();
+		if (isset($feed_options['feed-posts-exclude'][0]) && $feed_options['feed-posts-exclude'][0])
+		{
+			$excluded_posts = array_map( 'trim', explode( PHP_EOL, $feed_options['feed-posts-exclude'][0] ) );
+		}
 
 		// Define posts array and permlinks
 		$posts = array();
 		$previous_batch_permlink = '';
-		$last_post_permlink = '';
 			
 		// Starting posts count = 0
 		$c = 0;
@@ -85,7 +96,7 @@ class Steemit_Feed_Data {
 			if ($isjson)
 			{
 				$batch = json_decode($temp, false);
-	
+
 				// Track last permlink of this batch
 				$batch_count = count($batch);
 				$last_post = $batch[$batch_count - 1];
@@ -98,6 +109,18 @@ class Steemit_Feed_Data {
 				
 				foreach ($batch as $item)
 				{
+					// Exclude last permlink of previous page
+					if ($permlink && $permlink === $item->permlink)
+					{
+						continue;
+					}
+					
+					// Exclude posts
+					if (in_array($item->permlink, $excluded_posts))
+					{
+						continue;
+					}
+					
 					if (count($posts) >= $posts_per_page)
 					{
 						break;	

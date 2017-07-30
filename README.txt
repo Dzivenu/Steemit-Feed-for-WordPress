@@ -3,7 +3,7 @@ Contributors: minitekgr
 Tags: Steemit, Steemit feed, Steemit posts, Steemit articles, Steemit widget, Steem, Steem posts, cryptocurrency, bitcoin, blockchain
 Requires at least: 4.6
 Tested up to: 4.8
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -37,6 +37,11 @@ If you need support, please [open a support ticket](https://wordpress.org/suppor
 Yes, Steemit Feed should work with any theme.
 
 == Changelog ==
+
+= 1.1.1 =
+* Added option to exclude specific posts.
+* Added button to load more items in the feed dynamically.
+* Small changes in template files.
 
 = 1.1.0 =
 * WARNING: Feeds created with previous versions will no longer work. You must create new feeds and use the new shortcodes.

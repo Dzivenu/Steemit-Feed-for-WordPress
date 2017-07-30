@@ -80,6 +80,11 @@ class Steemit_Feed_CSS {
 			'.$steemitfeed.' .sf-list1 .sf-li:last-of-type {
 				border-bottom: 0;
 			}
+			'.$steemitfeed.' .sf-pagination {
+				margin-right: 10px;	
+				margin-left: 10px;	
+				border-top: 1px solid #eee;
+			}
 			';
 		}
 		

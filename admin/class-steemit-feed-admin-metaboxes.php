@@ -167,8 +167,9 @@ class Steemit_Feed_Admin_Metaboxes {
 		
 		// Data source
 		$fields[] = array( 'feed-author', 'text' );
-		$fields[] = array( 'feed-tags-include', 'select' );
-		$fields[] = array( 'feed-tags-exclude', 'select' );
+		$fields[] = array( 'feed-tags-include', 'textarea' );
+		$fields[] = array( 'feed-tags-exclude', 'textarea' );
+		$fields[] = array( 'feed-posts-exclude', 'textarea' );
 		
 		// Layout
 		$fields[] = array( 'feed-layout', 'radio' );
@@ -201,8 +202,8 @@ class Steemit_Feed_Admin_Metaboxes {
 		// Pagination
 		//$fields[] = array( 'feed-pagination-type', 'select' );
 		$fields[] = array( 'feed-initial-items', 'text' );
-		//$fields[] = array( 'feed-items-per-page', 'text' );
-		//$fields[] = array( 'feed-additional-pages', 'text' );
+		$fields[] = array( 'feed-items-per-page', 'text' );
+		$fields[] = array( 'feed-additional-pages', 'text' );
 		//$fields[] = array( 'feed-pagination-color', 'color' );
 		//$fields[] = array( 'feed-pagination-text-color', 'color' );
 		//$fields[] = array( 'feed-pagination-border-radius', 'text' );	

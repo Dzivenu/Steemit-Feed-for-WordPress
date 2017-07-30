@@ -202,6 +202,27 @@ $post_id = get_the_ID();
 				?><tr><?php
 				include( plugin_dir_path( __FILE__ ) . $this->plugin_name . '-admin-field-textarea.php' );
 				?></tr><?php	
+				
+				// Exclude Posts - Data source
+				$atts 					= array();
+				$atts['description'] 	= 'Enter each post permlink on a new line.';
+				$atts['id'] 			= 'feed-posts-exclude';
+				$atts['label'] 			= 'Exclude posts';
+				$atts['name'] 			= 'feed-posts-exclude';
+				$atts['type'] 			= 'textarea';
+				$atts['cols'] 			= '50';
+				$atts['rows'] 			= '4';
+				$atts['value'] 			= '';
+				
+				if ( ! empty( get_post_meta($post_id, $atts['id'], true) ) ) {
+					$atts['value'] = get_post_meta($post_id, $atts['id'], true);
+				}
+				
+				apply_filters( $this->plugin_name . '-field-' . $atts['id'], $atts );
+				
+				?><tr><?php
+				include( plugin_dir_path( __FILE__ ) . $this->plugin_name . '-admin-field-textarea.php' );
+				?></tr><?php	
 								
 			?>
 			</tbody>
@@ -857,9 +878,9 @@ $post_id = get_the_ID();
 		*/			
 		// Initial Items - Pagination
 		$atts 					= array();
-		$atts['description'] 	= 'The amount of posts to be loaded in the feed.';
+		$atts['description'] 	= 'The amount of posts to be initially loaded in the feed.';
 		$atts['id'] 			= 'feed-initial-items';
-		$atts['label'] 			= 'Posts count';
+		$atts['label'] 			= 'Initial posts';
 		$atts['name'] 			= 'feed-initial-items';
 		$atts['placeholder'] 	= '';
 		$atts['type'] 			= 'text';
@@ -874,7 +895,7 @@ $post_id = get_the_ID();
 		?><tr><?php
 		include( plugin_dir_path( __FILE__ ) . $this->plugin_name . '-admin-field-text.php' );
 		?></tr><?php
-		/*	
+		
 		// Items per page - Pagination
 		$atts 					= array();
 		$atts['description'] 	= '';
@@ -883,7 +904,7 @@ $post_id = get_the_ID();
 		$atts['name'] 			= 'feed-items-per-page';
 		$atts['placeholder'] 	= '';
 		$atts['type'] 			= 'text';
-		$atts['value'] 			= '3';
+		$atts['value'] 			= '5';
 		
 		if ( ! empty( get_post_meta($post_id, $atts['id'], true) ) ) {
 			$atts['value'] = get_post_meta($post_id, $atts['id'], true);
@@ -897,13 +918,13 @@ $post_id = get_the_ID();
 				
 		// Additional pages - Pagination
 		$atts 					= array();
-		$atts['description'] 	= 'Additional pages after initial items. Enter -1 for no limit.';
+		$atts['description'] 	= 'Additional pages after initial posts. Enter -1 for no limit.';
 		$atts['id'] 			= 'feed-additional-pages';
 		$atts['label'] 			= 'Additional pages';
 		$atts['name'] 			= 'feed-additional-pages';
 		$atts['placeholder'] 	= '';
 		$atts['type'] 			= 'text';
-		$atts['value'] 			= '3';
+		$atts['value'] 			= '0';
 		
 		if ( ! empty( get_post_meta($post_id, $atts['id'], true) ) ) {
 			$atts['value'] = get_post_meta($post_id, $atts['id'], true);
@@ -914,7 +935,7 @@ $post_id = get_the_ID();
 		?><tr><?php
 		include( plugin_dir_path( __FILE__ ) . $this->plugin_name . '-admin-field-text.php' );
 		?></tr><?php		
-						
+		/*				
 		?><tr><th colspan="2"><hr /></th></tr><?php
 		
 		// Theme color - Pagination
