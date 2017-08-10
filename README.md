@@ -1,4 +1,4 @@
-# OFFICIAL Steemit-Feed-for-WordPress - v.1.1.1
+# Steemit Feed for WordPress
 
 Display a feed of Steemit posts from any Steem author.
 
